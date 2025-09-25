@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Roblox Hit Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .hit {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #00ff88;
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            flex: 1;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Roblox Hit Tracker</h1>
+        <p>This page tracks hits from your Roblox executor script.</p>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <h3>Total Hits</h3>
+                <div id="totalHits">0</div>
+            </div>
+            <div class="stat-box">
+                <h3>Last Hit</h3>
+                <div id="lastHit">Never</div>
+            </div>
+        </div>
+
+        <h3>Recent Hits:</h3>
+        <div id="hitsContainer"></div>
+    </div>
+
+    <script>
+        // Load existing hits from localStorage
+        let hits = JSON.parse(localStorage.getItem('robloxHits')) || [];
+        
+        function recordHit() {
+            const newHit = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleString(),
+                ip: window.location.hostname,
+                userAgent: navigator.userAgent
+            };
+            
+            hits.unshift(newHit); // Add to beginning
+            hits = hits.slice(0, 50); // Keep only last 50 hits
+            
+            // Save to localStorage
+            localStorage.setItem('robloxHits', JSON.stringify(hits));
+            
+            // Update display
+            updateDisplay();
+            
+            return newHit;
+        }
+        
+        function updateDisplay() {
+            // Update stats
+            document.getElementById('totalHits').textContent = hits.length;
+            document.getElementById('lastHit').textContent = hits.length > 0 ? hits[0].timestamp : 'Never';
+            
+            // Display hits
+            const container = document.getElementById('hitsContainer');
+            container.innerHTML = '';
+            
+            hits.forEach(hit => {
+                const hitElement = document.createElement('div');
+                hitElement.className = 'hit';
+                hitElement.innerHTML = `
+                    <strong>Hit #${hit.id}</strong><br>
+                    📅 Time: ${hit.timestamp}<br>
+                    🌐 Source: ${hit.ip}
+                `;
+                container.appendChild(hitElement);
+            });
+            
+            // If no hits yet, show message
+            if (hits.length === 0) {
+                container.innerHTML = '<p>No hits recorded yet. Run your Roblox script!</p>';
+            }
+        }
+        
+        // Record a hit when page loads (for testing)
+        function simulateRobloxHit() {
+            const hit = recordHit();
+            console.log('🎯 Hit recorded:', hit);
+        }
+        
+        // Initialize display
+        updateDisplay();
+        
+        // Simulate a hit every 5 seconds for demo (remove in production)
+        setInterval(simulateRobloxHit, 5000);
+    </script>
+</body>
+</html>
